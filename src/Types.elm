@@ -8,12 +8,13 @@ import Time exposing (Time)
 type Msg
     = Tick Time
     | MouseMoved Mouse.Position
+    | SetBoids (List Boid)
 
 
 type alias Vector =
-    { x : Int
-    , y : Int
-    , z : Int
+    { x : Float
+    , y : Float
+    , z : Float
     }
 
 

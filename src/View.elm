@@ -10,14 +10,10 @@ import Types exposing (..)
 root : Model -> Html Msg
 root model =
     Html.div []
-        [ Html.div []
-            [ Html.code []
-                [ Html.text <| toString model ]
-            ]
-        , Svg.svg
+        [ Svg.svg
             [ width "100vw"
             , height "80vh"
-            , viewBox "-100 -100 200 200"
+            , viewBox "-500 -500 1000 1000"
             ]
             [ g []
                 (model.boids
