@@ -18,6 +18,11 @@ type alias Vector =
     }
 
 
+nullVector : Vector
+nullVector =
+    Vector 0 0 0
+
+
 type alias Boid =
     { position : Vector
     , velocity : Vector

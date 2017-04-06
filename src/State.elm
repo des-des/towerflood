@@ -2,6 +2,7 @@ module State exposing (..)
 
 import AnimationFrame
 import Array exposing (Array)
+import Dict exposing (Dict)
 import Mouse
 import Random
 import Random exposing (Generator)
@@ -20,8 +21,18 @@ generateVector from to =
 generateBoid : Generator Boid
 generateBoid =
     Random.map2 Boid
-        (generateVector -100 100)
+        (generateVector -200 200)
         (generateVector -2.5 2.5)
+
+
+gridSize : Int
+gridSize =
+    300
+
+
+flockInfluence : Float
+flockInfluence =
+    3
 
 
 init : ( Model, Cmd Msg )
@@ -30,7 +41,7 @@ init =
       , delta = 0.0
       , mouse = Nothing
       }
-    , Random.generate SetBoids (Random.list 50 generateBoid)
+    , Random.generate SetBoids (Random.list 100 generateBoid)
     )
 
 
@@ -58,16 +69,73 @@ update msg model =
 
 updateBoids : Time -> Array Boid -> Array Boid
 updateBoids time boids =
-    Array.map (updateBoid time) boids
+    let
+        averagesGrid =
+            Array.foldl addGridPosition Dict.empty boids
+    in
+        Array.map (updateBoid averagesGrid time) boids
 
 
-updateBoid : Time -> Boid -> Boid
-updateBoid time boid =
-    { boid
-        | position =
-            add boid.position
-                (scale (1 + (time / 10000000)) boid.velocity)
-    }
+addGridPosition :
+    Boid
+    -> Dict ( Int, Int, Int ) Vector
+    -> Dict ( Int, Int, Int ) Vector
+addGridPosition boid averages =
+    Dict.update (gridPosition boid.position)
+        (\currentAverage ->
+            case currentAverage of
+                Nothing ->
+                    Just <| boid.velocity
+
+                Just avg ->
+                    Just <| add boid.velocity avg
+        )
+        averages
+
+
+gridPosition : Vector -> ( Int, Int, Int )
+gridPosition { x, y, z } =
+    ( round x // gridSize
+    , round y // gridSize
+    , round z // gridSize
+    )
+
+
+updateBoid :
+    Dict ( Int, Int, Int ) Vector
+    -> Time
+    -> Boid
+    -> Boid
+updateBoid averagesGrid time boid =
+    let
+        gridAverage =
+            Dict.get (gridPosition boid.position) averagesGrid
+
+        gridInfluence =
+            gridAverage
+                |> Maybe.withDefault nullVector
+                |> normalise
+                |> scale flockInfluence
+    in
+        { boid
+            | position =
+                boid.velocity
+                    |> add boid.position
+                    |> scale (1 + (time / 10000000))
+                    |> add gridInfluence
+        }
+
+
+normalise : Vector -> Vector
+normalise { x, y, z } =
+    let
+        hypo =
+            sqrt ((x * x) + (y * y) + (z * z))
+    in
+        { x = x / hypo
+        , y = y / hypo
+        , z = z / hypo
+        }
 
 
 add : Vector -> Vector -> Vector
