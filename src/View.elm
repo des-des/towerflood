@@ -30,5 +30,6 @@ boidView boid =
         [ cx <| toString boid.position.x
         , cy <| toString boid.position.y
         , r "3px"
+        , fill "darkgoldenrod"
         ]
         []
