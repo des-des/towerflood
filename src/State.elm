@@ -2,6 +2,7 @@ module State exposing (..)
 
 import AnimationFrame
 import Array
+import Mouse
 import Types exposing (..)
 
 
@@ -17,6 +18,7 @@ init =
                   }
                 ]
       , delta = 0.0
+      , mouse = Nothing
       }
     , Cmd.none
     )
@@ -30,7 +32,15 @@ update msg model =
             , Cmd.none
             )
 
+        MouseMoved position ->
+            ( { model | mouse = Just position }
+            , Cmd.none
+            )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    AnimationFrame.diffs Tick
+    Sub.batch
+        [ AnimationFrame.diffs Tick
+        , Mouse.moves MouseMoved
+        ]

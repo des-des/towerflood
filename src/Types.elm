@@ -1,11 +1,13 @@
 module Types exposing (..)
 
 import Array exposing (Array)
+import Mouse
 import Time exposing (Time)
 
 
 type Msg
     = Tick Time
+    | MouseMoved Mouse.Position
 
 
 type alias Vector =
@@ -24,4 +26,5 @@ type alias Boid =
 type alias Model =
     { boids : Array Boid
     , delta : Time
+    , mouse : Maybe Mouse.Position
     }
