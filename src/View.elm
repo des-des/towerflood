@@ -11,9 +11,9 @@ root : Model -> Html Msg
 root model =
     Html.div []
         [ Svg.svg
-            [ width "100vw"
-            , height "80vh"
-            , viewBox "-500 -500 1000 1000"
+            [ width "800px"
+            , height "600px"
+            , viewBox "-400 -300 800 600"
             ]
             [ g []
                 (model.boids
@@ -29,6 +29,6 @@ boidView boid =
     circle
         [ cx <| toString boid.position.x
         , cy <| toString boid.position.y
-        , r "5px"
+        , r "3px"
         ]
         []

@@ -30,6 +30,11 @@ gridSize =
     300
 
 
+mouseInfluence : Float
+mouseInfluence =
+    4
+
+
 flockInfluence : Float
 flockInfluence =
     3
@@ -41,7 +46,7 @@ init =
       , delta = 0.0
       , mouse = Nothing
       }
-    , Random.generate SetBoids (Random.list 100 generateBoid)
+    , Random.generate SetBoids (Random.list 1000 generateBoid)
     )
 
 
@@ -56,7 +61,7 @@ update msg model =
         Tick time ->
             ( { model
                 | delta = time
-                , boids = updateBoids time model.boids
+                , boids = updateBoids model.mouse time model.boids
               }
             , Cmd.none
             )
@@ -67,13 +72,13 @@ update msg model =
             )
 
 
-updateBoids : Time -> Array Boid -> Array Boid
-updateBoids time boids =
+updateBoids : Maybe Mouse.Position -> Time -> Array Boid -> Array Boid
+updateBoids mouse time boids =
     let
         averagesGrid =
             Array.foldl addGridPosition Dict.empty boids
     in
-        Array.map (updateBoid averagesGrid time) boids
+        Array.map (updateBoid mouse averagesGrid time) boids
 
 
 addGridPosition :
@@ -102,11 +107,12 @@ gridPosition { x, y, z } =
 
 
 updateBoid :
-    Dict ( Int, Int, Int ) Vector
+    Maybe Mouse.Position
+    -> Dict ( Int, Int, Int ) Vector
     -> Time
     -> Boid
     -> Boid
-updateBoid averagesGrid time boid =
+updateBoid mouse averagesGrid time boid =
     let
         gridAverage =
             Dict.get (gridPosition boid.position) averagesGrid
@@ -116,6 +122,20 @@ updateBoid averagesGrid time boid =
                 |> Maybe.withDefault nullVector
                 |> normalise
                 |> scale flockInfluence
+
+        kingInfluence =
+            case mouse of
+                Nothing ->
+                    nullVector
+
+                Just m ->
+                    { x = (toFloat m.x) - boid.position.x
+                    , y = (toFloat m.y) - boid.position.y
+                    , z = 0
+                    }
+                        |> add (Vector -400 -300 0)
+                        |> normalise
+                        |> scale mouseInfluence
     in
         { boid
             | position =
@@ -123,6 +143,7 @@ updateBoid averagesGrid time boid =
                     |> add boid.position
                     |> scale (1 + (time / 10000000))
                     |> add gridInfluence
+                    |> add kingInfluence
         }
 
 
